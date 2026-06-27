@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cari Takip Pro - Sheets Lisans Paneli v3.1.10</title>
+<style>
+body{font-family:Arial,sans-serif;background:#f3f4f6;margin:0;color:#111827}.wrap{max-width:1320px;margin:auto;padding:20px}.card{background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:18px;margin-bottom:14px;box-shadow:0 1px 3px rgba(0,0,0,.06)}h1{margin:0 0 4px}.muted{color:#6b7280;font-size:13px;margin-bottom:18px}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}label{font-size:12px;font-weight:700;color:#6b7280;display:block;margin-bottom:4px}input,select,textarea{width:100%;padding:10px;border:1px solid #e5e7eb;border-radius:8px;box-sizing:border-box}button{background:#1d6f42;color:#fff;border:0;border-radius:8px;padding:9px 11px;font-weight:700;cursor:pointer;white-space:nowrap}button:hover{filter:brightness(.95)}button:disabled{opacity:.6;cursor:not-allowed}.btn-gray{background:#374151}.btn-red{background:#dc2626}.btn-blue{background:#1d4ed8}.btn-orange{background:#d97706}.btn-sm{font-size:12px;padding:7px 9px}table{width:100%;border-collapse:collapse;min-width:1420px}th,td{padding:8px;border-bottom:1px solid #e5e7eb;text-align:left;font-size:13px;vertical-align:top}th{background:#f9fafb;color:#6b7280;position:sticky;top:0}.ok{color:#166534;font-weight:700}.err{color:#991b1b;font-weight:700}.row-actions{display:flex;gap:6px;flex-wrap:wrap}.pill{display:inline-block;padding:3px 8px;border-radius:999px;font-size:11px;font-weight:800}.active{background:#dcfce7;color:#166534}.passive,.suspended,.cancelled{background:#fee2e2;color:#991b1b}.expired{background:#fef3c7;color:#92400e}.edit-row input,.edit-row select{min-width:110px;padding:7px}.sheet-id{font-size:11px;color:#6b7280;max-width:210px;word-break:break-all}.topbar{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap}.search{max-width:340px}.note{font-size:12px;color:#6b7280;margin-top:8px;line-height:1.45}.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:99;padding:20px}.modal{background:#fff;max-width:980px;margin:40px auto;border-radius:16px;padding:18px;box-shadow:0 25px 60px rgba(0,0,0,.25)}.modal-head{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:12px}.device-table{min-width:820px}@media(max-width:800px){.grid{grid-template-columns:1fr}.wrap{padding:10px}.topbar{align-items:stretch}.search{max-width:none}.modal{margin:10px auto}.modal-bg{padding:10px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Cari Takip Pro CLEAN Lisans Paneli</h1>
+  <div class="muted">v4.0 CLEAN - LİSANS TAKİP Master API bağlantılı</div>
+
+  <div class="card">
+    <div class="grid">
+      <div><label>Cloud API /exec Linki</label><input id="api" value="https://script.google.com/macros/s/AKfycbx2XBJ6FP5oXCPg8r_NNdYErWxa6g4QphQfJLBWq9-qMhAKkBz0ndGVLBnPr9u6UvLR/exec" placeholder="https://script.google.com/macros/s/.../exec"></div>
+      <div><label>Admin Token</label><input id="token" value="ADMIN-1234-DEGISTIR"></div>
+      <div style="display:flex;align-items:end"><button onclick="saveSettings()">Ayarı Kaydet</button></div>
+    </div>
+    <div class="note">Apps Script kodunu v3.1.10 dosyasıyla güncelle. Sonra Apps Script’te <b>Dağıtımları yönet &gt; Düzenle &gt; Yeni sürüm &gt; Dağıt</b> yap.</div>
+  </div>
+
+  <div class="card">
+    <h3>Yeni Müşteri Oluştur</h3>
+    <div class="grid">
+      <div><label>Müşteri / Firma Adı</label><input id="customerName" placeholder="ABC Market"></div>
+      <div><label>İlk Admin Kullanıcı / Mail</label><input id="ownerEmail" placeholder="admin@firma.com veya firma_admin"></div>
+      <div><label>İlk Şifre</label><input id="ownerPassword" placeholder="Boşsa otomatik oluşur" autocomplete="new-password"></div>
+      <div><label>Paket</label><select id="package"><option>standard</option><option>pro</option><option>kurumsal</option></select></div>
+      <div><label>Lisans Bitiş</label><input id="expiresAt" type="date"></div>
+      <div><label>Kullanıcı Limiti</label><input id="maxUsers" type="number" value="3" min="1"></div>
+      <div><label>Cihaz Limiti</label><input id="maxDevices" type="number" value="3" min="1"></div>
+      <div style="display:flex;align-items:end"><button onclick="createCustomer()">Lisans + İlk Kullanıcı Oluştur</button></div>
+    </div>
+    <div id="msg" style="margin-top:10px"></div>
+  </div>
+
+  <div class="card">
+    <div class="topbar">
+      <h3 style="margin:0">Lisanslar</h3>
+      <input class="search" id="q" placeholder="Lisans / müşteri ara..." oninput="renderLicenses()">
+      <button onclick="listLicenses()">Listeyi Yenile</button>
+    </div>
+    <div style="overflow:auto;margin-top:10px;max-height:70vh">
+      <table>
+        <thead><tr><th>Lisans</th><th>Müşteri</th><th>Durum</th><th>Bitiş</th><th>Paket</th><th>Kullanıcı Limit</th><th>Kayıtlı Mail/Kullanıcı</th><th>Cihaz</th><th>Sheet ID</th><th>Not</th><th>İşlem</th></tr></thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="deviceModal">
+  <div class="modal">
+    <div class="modal-head">
+      <div><h3 style="margin:0">Kayıtlı Cihazlar</h3><div class="muted" id="deviceTitle" style="margin:4px 0 0"></div></div>
+      <button class="btn-gray" onclick="closeDevices()">Kapat</button>
+    </div>
+    <div id="deviceMsg" style="margin-bottom:8px"></div>
+    <div style="overflow:auto;max-height:65vh">
+      <table class="device-table">
+        <thead><tr><th>Cihaz ID</th><th>İlk Giriş</th><th>Son Giriş</th><th>Durum</th><th>Tarayıcı</th><th>İşlem</th></tr></thead>
+        <tbody id="deviceBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="userModal">
+  <div class="modal">
+    <div class="modal-head">
+      <div><h3 style="margin:0">Lisans Kayıtlı Mailler / Kullanıcılar</h3><div class="muted" id="userTitle" style="margin:4px 0 0"></div></div>
+      <button class="btn-gray" onclick="closeUsers()">Kapat</button>
+    </div>
+    <div id="userMsg" style="margin-bottom:8px"></div>
+    <div class="grid" style="margin-bottom:10px">
+      <div><label>Yeni Kullanıcı / Mail</label><input id="newUserEmail" placeholder="personel@firma.com veya kullanıcı adı"></div>
+      <div><label>Şifre</label><input id="newUserPassword" placeholder="Boşsa otomatik oluşur" autocomplete="new-password"></div>
+      <div><label>Rol</label><select id="newUserRole"><option value="personel">personel</option><option value="admin">admin</option><option value="viewer">viewer</option></select></div>
+      <div style="display:flex;align-items:end"><button class="btn-blue" onclick="addUser()">Kullanıcı Ekle</button></div>
+    </div>
+    <div style="overflow:auto;max-height:65vh">
+      <table class="device-table">
+        <thead><tr><th>E-posta</th><th>Rol</th><th>Durum</th><th>Oluşturma</th><th>Son Giriş</th><th>İşlem</th></tr></thead>
+        <tbody id="userBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+let LICENSES=[]; let EDIT_KEY=''; let CURRENT_DEVICE_LICENSE=''; let CURRENT_USER_LICENSE='';
+function esc(v){return String(v??'').replace(/[&<>'"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[m]))}
+function saveSettings(){localStorage.setItem('ct_admin_api',document.getElementById('api').value.trim());localStorage.setItem('ct_admin_token',document.getElementById('token').value.trim());msg('Ayar kaydedildi',true)}
+function loadSettings(){document.getElementById('api').value=localStorage.getItem('ct_admin_api')||'https://script.google.com/macros/s/AKfycbx2XBJ6FP5oXCPg8r_NNdYErWxa6g4QphQfJLBWq9-qMhAKkBz0ndGVLBnPr9u6UvLR/exec';document.getElementById('token').value=localStorage.getItem('ct_admin_token')||'ADMIN-1234-DEGISTIR'}
+function msg(t,ok){document.getElementById('msg').innerHTML='<span class="'+(ok?'ok':'err')+'">'+esc(t)+'</span>'}
+function dmsg(t,ok){document.getElementById('deviceMsg').innerHTML='<span class="'+(ok?'ok':'err')+'">'+esc(t)+'</span>'}
+function umsg(t,ok){document.getElementById('userMsg').innerHTML='<span class="'+(ok?'ok':'err')+'">'+esc(t)+'</span>'}
+function jsonp(params){return new Promise((resolve,reject)=>{const api=document.getElementById('api').value.trim();if(!api){reject(new Error('API linki boş'));return}const cb='cb_'+Date.now()+'_'+Math.floor(Math.random()*999999);params.callback=cb;params._=Date.now();let done=false;let s;const cleanup=()=>{try{delete window[cb]}catch(e){};try{s&&s.remove()}catch(e){}};window[cb]=(d)=>{done=true;cleanup();resolve(d)};s=document.createElement('script');s.onerror=()=>{cleanup();reject(new Error('API bağlantı hatası. /exec linki veya dağıtım izni hatalı olabilir.'))};s.src=api+(api.includes('?')?'&':'?')+new URLSearchParams(params).toString();document.body.appendChild(s);setTimeout(()=>{if(!done){cleanup();reject(new Error('API cevap vermedi. Apps Script yeni sürüm olarak dağıtılmamış olabilir.'))}},20000)})}
+function backendErr(r){if(r&&r.error==='Geçersiz işlem')return 'Apps Script tarafı eski. v3.1.10 Apps Script dosyasını yapıştırıp yeni sürüm olarak dağıtmalısın.';return (r&&r.error)||'Bilinmeyen hata'}
+async function createCustomer(){try{saveSettings();const r=await jsonp({action:'adminCreateCustomer',adminToken:document.getElementById('token').value.trim(),customerName:document.getElementById('customerName').value.trim(),ownerEmail:(document.getElementById('ownerEmail')&&document.getElementById('ownerEmail').value||'').trim(),ownerPassword:(document.getElementById('ownerPassword')&&document.getElementById('ownerPassword').value||'').trim(),package:document.getElementById('package').value,expiresAt:document.getElementById('expiresAt').value,maxUsers:document.getElementById('maxUsers').value,maxDevices:document.getElementById('maxDevices').value});if(!r.ok){msg(backendErr(r),false);return}let text='Lisans oluşturuldu: '+r.licenseKey+' | Sheet: '+r.sheetUrl;if(r.initialUser)text+=' | Kullanıcı: '+r.initialUser;if(r.initialPassword)text+=' | Şifre: '+r.initialPassword;await listLicenses();msg(text,true);if(document.getElementById('ownerPassword'))document.getElementById('ownerPassword').value=''}catch(e){msg(e.message,false)}}
+async function listLicenses(){try{saveSettings();const r=await jsonp({action:'adminListLicenses',adminToken:document.getElementById('token').value.trim()});if(!r.ok){msg(backendErr(r),false);return}LICENSES=r.licenses||[];EDIT_KEY='';renderLicenses();msg('Liste güncellendi',true)}catch(e){msg(e.message,false)}}
+function statusClass(s){s=String(s||'').toLowerCase();return ['active','passive','expired','suspended','cancelled'].includes(s)?s:'passive'}
+function renderLicenses(){const q=(document.getElementById('q')?.value||'').toLowerCase();const rows=LICENSES.filter(x=>(String(x.license_key)+' '+String(x.customer_name)+' '+String(x.owner_email||'')+' '+String(x.user_emails||'')).toLowerCase().includes(q));document.getElementById('tbody').innerHTML=rows.map(x=>EDIT_KEY===String(x.license_key)?editRow(x):viewRow(x)).join('')||'<tr><td colspan="11" style="text-align:center;color:#6b7280">Kayıt yok</td></tr>'}
+function usersPreview(x){const users=x.users||[];if(!users.length)return '<span style="color:#9ca3af">Henüz kayıtlı mail yok</span>';const first=users.slice(0,2).map(u=>'<div><b>'+esc(u.email)+'</b> <span class="pill '+(u.active?'active':'passive')+'">'+esc(u.role||'')+'</span></div>').join('');const more=users.length>2?'<div style="color:#6b7280;font-size:11px">+'+(users.length-2)+' kullanıcı daha</div>':'';return first+more}
+function viewRow(x){const st=esc(x.status||'');const used=x.device_count??0;const ucount=x.user_count??((x.users||[]).filter(u=>u.active!==false).length);return `<tr><td><b>${esc(x.license_key)}</b><div style="font-size:11px;color:#6b7280">Admin: ${esc(x.owner_email||'-')}</div></td><td>${esc(x.customer_name)}</td><td><span class="pill ${statusClass(st)}">${st}</span></td><td>${esc(fmtDate(x.expires_at))}</td><td>${esc(x.package)}</td><td><b>${esc(ucount)}</b> / ${esc(x.max_users)}</td><td>${usersPreview(x)}<button class="btn-sm btn-blue" style="margin-top:6px" onclick="showUsers('${esc(x.license_key)}','${esc(x.customer_name)}')">Kullanıcıları Göster</button></td><td><b>${esc(used)}</b> / ${esc(x.max_devices)}</td><td class="sheet-id">${esc(x.customer_sheet_id)}</td><td>${esc(x.notes||'')}</td><td><div class="row-actions"><button class="btn-sm btn-blue" onclick="startEdit('${esc(x.license_key)}')">Düzenle</button><button class="btn-sm btn-blue" onclick="showDevices('${esc(x.license_key)}','${esc(x.customer_name)}')">Cihazları Göster</button><button class="btn-sm btn-orange" onclick="resetDevices('${esc(x.license_key)}')">Cihaz Sıfırla</button><button class="btn-sm btn-red" onclick="deleteLicense('${esc(x.license_key)}')">Sil</button></div></td></tr>`}
+function editRow(x){return `<tr class="edit-row"><td><b>${esc(x.license_key)}</b></td><td><input id="e_customer" value="${esc(x.customer_name)}"></td><td><select id="e_status"><option value="active">active</option><option value="passive">passive</option><option value="expired">expired</option><option value="suspended">suspended</option><option value="cancelled">cancelled</option></select></td><td><input id="e_expires" type="date" value="${esc(fmtDate(x.expires_at))}"></td><td><select id="e_package"><option>standard</option><option>pro</option><option>kurumsal</option></select></td><td><input id="e_users" type="number" min="1" value="${esc(x.max_users||1)}"></td><td>${usersPreview(x)}</td><td><input id="e_devices" type="number" min="1" value="${esc(x.max_devices||1)}"></td><td class="sheet-id">${esc(x.customer_sheet_id)}</td><td><input id="e_notes" value="${esc(x.notes||'')}"></td><td><div class="row-actions"><button class="btn-sm" onclick="saveEdit('${esc(x.license_key)}')">Kaydet</button><button class="btn-sm btn-gray" onclick="cancelEdit()">Vazgeç</button></div></td></tr>`}
+function startEdit(key){EDIT_KEY=key;renderLicenses();const x=LICENSES.find(a=>String(a.license_key)===String(key));if(x){document.getElementById('e_status').value=x.status||'active';document.getElementById('e_package').value=x.package||'standard'}}
+function cancelEdit(){EDIT_KEY='';renderLicenses()}
+function fmtDate(v){if(!v)return'';if(v instanceof Date)return v.toISOString().slice(0,10);const s=String(v);const m=s.match(/\d{4}-\d{2}-\d{2}/);if(m)return m[0];const d=new Date(s);return isNaN(d)?s:d.toISOString().slice(0,10)}
+function fmtDateTime(v){if(!v)return'-';const d=new Date(v);return isNaN(d)?String(v):d.toLocaleString('tr-TR')}
+async function saveEdit(key){const btn=event&&event.target?event.target:null;try{if(btn){btn.disabled=true;btn.textContent='Kaydediliyor...'}msg('Kaydediliyor...',true);const r=await jsonp({action:'adminUpdateLicense',adminToken:document.getElementById('token').value.trim(),licenseKey:key,customerName:document.getElementById('e_customer').value.trim(),status:document.getElementById('e_status').value,expiresAt:document.getElementById('e_expires').value,maxUsers:document.getElementById('e_users').value,maxDevices:document.getElementById('e_devices').value,package:document.getElementById('e_package').value,notes:document.getElementById('e_notes').value.trim()});if(!r.ok){msg(backendErr(r),false);return}msg('Lisans güncellendi',true);await listLicenses()}catch(e){msg(e.message,false)}finally{if(btn){btn.disabled=false;btn.textContent='Kaydet'}}}
+async function resetDevices(key){if(!confirm('Bu lisansa bağlı cihaz kayıtları sıfırlansın mı?'))return;try{const r=await jsonp({action:'adminResetDevices',adminToken:document.getElementById('token').value.trim(),licenseKey:key});if(!r.ok){msg(backendErr(r),false);return}msg('Cihazlar sıfırlandı. Silinen cihaz: '+(r.deleted||0),true);await listLicenses()}catch(e){msg(e.message,false)}}
+async function deleteLicense(key){if(!confirm('Bu lisans, cihaz kayıtları ve müşteriye ait Google Sheet veritabanı silinecek. Emin misin?'))return;try{const r=await jsonp({action:'adminDeleteLicense',adminToken:document.getElementById('token').value.trim(),licenseKey:key});if(!r.ok){msg(backendErr(r),false);return}let text=r.message||'Lisans silindi';if(r.sheetDeleteError)text+=' | Sheet silme hatası: '+r.sheetDeleteError;msg(text,true);await listLicenses()}catch(e){msg(e.message,false)}}
+async function showUsers(key,name){CURRENT_USER_LICENSE=key;document.getElementById('userModal').style.display='block';document.getElementById('userTitle').textContent=key+' - '+(name||'');document.getElementById('userBody').innerHTML='<tr><td colspan="6" style="color:#6b7280">Kullanıcılar yükleniyor...</td></tr>';umsg('',true);try{const r=await jsonp({action:'adminListUsers',adminToken:document.getElementById('token').value.trim(),licenseKey:key});if(!r.ok){umsg(backendErr(r),false);document.getElementById('userBody').innerHTML='<tr><td colspan="6" style="color:#991b1b">Kullanıcı listesi alınamadı</td></tr>';return}const list=r.users||[];umsg('Kayıtlı kullanıcı/mail: '+list.length,true);document.getElementById('userBody').innerHTML=list.length?list.map(userRow).join(''):'<tr><td colspan="6" style="color:#6b7280">Bu lisansa bağlı kullanıcı yok</td></tr>'}catch(e){umsg(e.message,false)}}
+function userRow(u){const email=esc(u.email||'');return `<tr><td><b>${email}</b></td><td><span class="pill ${String(u.role)==='admin'?'active':'expired'}">${esc(u.role||'')}</span></td><td>${u.active?'<span class="pill active">Aktif</span>':'<span class="pill passive">Pasif</span>'}</td><td>${esc(fmtDateTime(u.created_at))}</td><td>${esc(fmtDateTime(u.last_login))}</td><td><div class="row-actions"><button class="btn-sm btn-blue" onclick="editUser('${email}','${esc(u.role||'personel')}','${u.active?'1':'0'}')">Düzenle</button><button class="btn-sm btn-red" onclick="deleteUser('${email}')">Sil</button></div></td></tr>`}
+function editUser(email,role,active){document.getElementById('userBody').querySelectorAll('tr').forEach(tr=>{if(tr.innerText.toLowerCase().includes(String(email).toLowerCase())){tr.innerHTML=`<td><label style="font-size:10px;color:#6b7280;font-weight:700">E-posta / Kullanıcı Adı</label><input id="u_email" value="${esc(email)}" style="min-width:210px"><div style="font-size:11px;color:#6b7280">Admin kullanıcısının adı da değiştirilebilir. Sadece son aktif admin korunur.</div></td><td><select id="u_role"><option value="admin">admin</option><option value="personel">personel</option><option value="viewer">viewer</option></select></td><td><select id="u_active"><option value="true">Aktif</option><option value="false">Pasif</option></select></td><td colspan="2" style="color:#6b7280">Şifre değiştirme müşteri uygulamasındaki Kullanıcı Yönetimi üzerinden yapılır.</td><td><div class="row-actions"><button class="btn-sm" onclick="saveUser('${esc(email)}')">Kaydet</button><button class="btn-sm btn-gray" onclick="refreshUsers()">Vazgeç</button></div></td>`;document.getElementById('u_role').value=role||'personel';document.getElementById('u_active').value=active==='1'?'true':'false';}})}
+async function saveUser(email){if(!CURRENT_USER_LICENSE)return;try{const newEmail=(document.getElementById('u_email')&&document.getElementById('u_email').value||'').trim().toLowerCase();if(!newEmail){umsg('E-posta boş olamaz',false);return}const r=await jsonp({action:'adminUpdateUser',adminToken:document.getElementById('token').value.trim(),licenseKey:CURRENT_USER_LICENSE,email:email,newEmail:newEmail,role:document.getElementById('u_role').value,active:document.getElementById('u_active').value});if(!r.ok){umsg(backendErr(r),false);return}umsg('Kullanıcı güncellendi',true);await refreshUsers();await listLicenses()}catch(e){umsg(e.message,false)}}
+async function deleteUser(email){if(!CURRENT_USER_LICENSE)return;if(!confirm(email+' kullanıcısı bu lisanstan silinsin mi?'))return;try{const r=await jsonp({action:'adminDeleteUser',adminToken:document.getElementById('token').value.trim(),licenseKey:CURRENT_USER_LICENSE,email:email});if(!r.ok){umsg(backendErr(r),false);return}umsg('Kullanıcı silindi',true);await refreshUsers();await listLicenses()}catch(e){umsg(e.message,false)}}
+async function addUser(){if(!CURRENT_USER_LICENSE)return;try{const email=(document.getElementById('newUserEmail')&&document.getElementById('newUserEmail').value||'').trim().toLowerCase();const password=(document.getElementById('newUserPassword')&&document.getElementById('newUserPassword').value||'').trim();const role=(document.getElementById('newUserRole')&&document.getElementById('newUserRole').value)||'personel';if(!email){umsg('Kullanıcı/mail boş olamaz',false);return}const r=await jsonp({action:'adminAddUser',adminToken:document.getElementById('token').value.trim(),licenseKey:CURRENT_USER_LICENSE,email:email,password:password,role:role});if(!r.ok){umsg(backendErr(r),false);return}let text='Kullanıcı eklendi: '+r.email;if(r.password)text+=' | Şifre: '+r.password;document.getElementById('newUserEmail').value='';document.getElementById('newUserPassword').value='';await refreshUsers();await listLicenses();umsg(text,true)}catch(e){umsg(e.message,false)}}
+async function refreshUsers(){const lic=LICENSES.find(x=>String(x.license_key)===String(CURRENT_USER_LICENSE));await showUsers(CURRENT_USER_LICENSE,lic?lic.customer_name:'')}
+function closeUsers(){document.getElementById('userModal').style.display='none';CURRENT_USER_LICENSE=''}
+async function showDevices(key,name){CURRENT_DEVICE_LICENSE=key;document.getElementById('deviceModal').style.display='block';document.getElementById('deviceTitle').textContent=key+' - '+(name||'');document.getElementById('deviceBody').innerHTML='<tr><td colspan="6" style="color:#6b7280">Cihazlar yükleniyor...</td></tr>';dmsg('',true);try{const r=await jsonp({action:'adminListDevices',adminToken:document.getElementById('token').value.trim(),licenseKey:key});if(!r.ok){dmsg(backendErr(r),false);document.getElementById('deviceBody').innerHTML='<tr><td colspan="6" style="color:#991b1b">Cihaz listesi alınamadı</td></tr>';return}const list=r.devices||[];dmsg('Kayıtlı cihaz: '+list.length+' / Limit: '+(r.maxDevices||'-'),true);document.getElementById('deviceBody').innerHTML=list.length?list.map(d=>deviceRow(d)).join(''):'<tr><td colspan="6" style="color:#6b7280">Kayıtlı cihaz yok</td></tr>'}catch(e){dmsg(e.message,false)}}
+function deviceRow(d){const id=String(d.device_id||'');const short=id.replace(/^dev_/,'').slice(0,32)+(id.length>36?'...':'');return `<tr><td><b title="${esc(id)}">${esc(short)}</b></td><td>${esc(fmtDateTime(d.first_seen))}</td><td>${esc(fmtDateTime(d.last_seen))}</td><td>${d.allowed?'<span class="pill active">Aktif</span>':'<span class="pill passive">Pasif</span>'}</td><td style="max-width:280px;word-break:break-word;color:#6b7280;font-size:12px">${esc(d.user_agent||'')}</td><td><button class="btn-sm btn-red" onclick="removeDevice('${esc(id)}')">Kaldır</button></td></tr>`}
+async function removeDevice(deviceId){if(!CURRENT_DEVICE_LICENSE||!deviceId)return;if(!confirm('Bu cihaz kaldırılsın mı?'))return;try{const r=await jsonp({action:'adminRemoveDevice',adminToken:document.getElementById('token').value.trim(),licenseKey:CURRENT_DEVICE_LICENSE,removeDeviceId:deviceId});if(!r.ok){dmsg(backendErr(r),false);return}dmsg('Cihaz kaldırıldı',true);const lic=LICENSES.find(x=>String(x.license_key)===String(CURRENT_DEVICE_LICENSE));await showDevices(CURRENT_DEVICE_LICENSE,lic?lic.customer_name:'');await listLicenses()}catch(e){dmsg(e.message,false)}}
+function closeDevices(){document.getElementById('deviceModal').style.display='none';CURRENT_DEVICE_LICENSE=''}
+loadSettings();
+</script>
+</body>
+</html>
